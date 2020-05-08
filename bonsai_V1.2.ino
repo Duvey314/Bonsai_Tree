@@ -46,7 +46,7 @@ int buttonLast = 0;                       // buffered value of the button's prev
 bool buttonFlag = false;
 
 //timer variables
-const unsigned long growInterval = 1000UL;     //time between each growth
+const unsigned long growInterval = 500UL;     //time between each growth
 const unsigned long leafInterval = 20000UL;   //time to wait before continuing changing leaves
 unsigned long growTimer = 0UL;                //current growth interval
 unsigned long leafTimer = 0UL;             //current leaf growing interval
@@ -80,6 +80,8 @@ int sideBranchLength = 0;
 int sideBranchMaxLength = 4;
 int sideBranchHolderX = 0;
 int sideBranchHolderY = 0;
+int branchPointX = 0;
+int branchPointY = 0;
 
 //leaf variables
 int leafTotal = 0;
@@ -289,17 +291,17 @@ void sideBranchAdd ()
   {
     if (sideBranchLength == 0) {                              //if no branch has been added, choose a random piece of the main branch to start from
       randomGrowth = Entropy.random(1,6);                     
-      sideBranchX[0] = mainBranchX[randomGrowth];
-      sideBranchY[0] = mainBranchY[randomGrowth];
+      branchPointX = mainBranchX[randomGrowth];
+      branchPointY = mainBranchY[randomGrowth];
       sideBranchLength++;
       }
     
-        if (sideBranchX[0] < 4){                              //if the starting point is on the left side of the screen, grow right
-          sideBranchX[sideBranchLength] = sideBranchX[0]+sideBranchLength;
+        if (branchPointX < 4){                              //if the starting point is on the left side of the screen, grow right
+          sideBranchX[sideBranchLength] = branchPointX+sideBranchLength;
           Serial.println("The branch is growing right");
         }
         else{
-          sideBranchX[sideBranchLength] = sideBranchX[0]-sideBranchLength;
+          sideBranchX[sideBranchLength] = branchPointX-sideBranchLength;
           Serial.println("The branch is growing left");
         }     
       
@@ -325,7 +327,7 @@ void leafAdd(){
   randomGrowth = Entropy.random(2);
   leafAdded = false;
   if (randomGrowth == 1){                                 //decide between growing a leaf on the branch or trunk
-    randomGrowth = Entropy.random(3,8);
+    randomGrowth = Entropy.random(3,7);                   //only to 7 beacuse the branch doesnt go to the edge fo the screen
     leafHolderX = mainBranchX[randomGrowth] - 1 + Entropy.random(3);
     leafHolderY = mainBranchY[randomGrowth] - 1 + Entropy.random(3);
   }
