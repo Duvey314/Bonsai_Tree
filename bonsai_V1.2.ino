@@ -46,7 +46,7 @@ int buttonLast = 0;                       // buffered value of the button's prev
 bool buttonFlag = false;
 
 //timer variables
-const unsigned long growInterval = 500UL;     //time between each growth
+const unsigned long growInterval = 5000UL;     //time between each growth
 const unsigned long leafInterval = 20000UL;   //time to wait before continuing changing leaves
 unsigned long growTimer = 0UL;                //current growth interval
 unsigned long leafTimer = 0UL;             //current leaf growing interval
@@ -291,23 +291,22 @@ void sideBranchAdd ()
   {
     if (sideBranchLength == 0) {                              //if no branch has been added, choose a random piece of the main branch to start from
       randomGrowth = Entropy.random(1,6);                     
-      branchPointX = mainBranchX[randomGrowth];
-      branchPointY = mainBranchY[randomGrowth];
+      sideBranchX[sideBranchLength] = mainBranchX[randomGrowth];
+      sideBranchY[sideBranchLength] = mainBranchY[randomGrowth];
       sideBranchLength++;
       }
     
         if (branchPointX < 4){                              //if the starting point is on the left side of the screen, grow right
-          sideBranchX[sideBranchLength] = branchPointX+sideBranchLength;
+          sideBranchX[sideBranchLength] = sideBranchX[0]+sideBranchLength;
           Serial.println("The branch is growing right");
         }
         else{
-          sideBranchX[sideBranchLength] = branchPointX-sideBranchLength;
+          sideBranchX[sideBranchLength] = sideBranchX[0]-sideBranchLength;
           Serial.println("The branch is growing left");
         }     
       
-      randomGrowth = (sideBranchY[sideBranchLength-1] - 1 + Entropy.random(0,3));
-      
-      sideBranchY[sideBranchLength] = randomGrowth;  //Y branch growth
+      sideBranchY[sideBranchLength] = (sideBranchY[sideBranchLength-1] - 1 + Entropy.random(0,3));
+     
    
       matrix.drawPixel(sideBranchY[sideBranchLength], sideBranchX[sideBranchLength], LED_YELLOW);  
       matrix.writeDisplay();
