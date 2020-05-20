@@ -46,13 +46,13 @@ int buttonLast = 0;                       // buffered value of the button's prev
 bool buttonFlag = false;
 
 //timer variables
-const unsigned long growInterval = 5000UL;     //time between each growth
+const unsigned long growInterval = 10000UL;     //time between each growth
 const unsigned long leafInterval = 20000UL;   //time to wait before continuing changing leaves
 unsigned long growTimer = 0UL;                //current growth interval
 unsigned long leafTimer = 0UL;             //current leaf growing interval
 
 const unsigned long debounce = 20UL;
-const unsigned long holdTime = 1000UL;
+const unsigned long holdTime = 5000UL;
 
 unsigned long buttonTime = 0UL;           // time the button was pressed down
 
@@ -562,20 +562,27 @@ void pruneBlink(){
 if (buttonFlag == true){
   if (state == mainBranchGrow){
       if (mainBranchLength > 1){
-        mainBranchLength--;
-        if(blinkState == LOW){
-          blinkState = HIGH;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_OFF);  
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_OFF);  
           matrix.writeDisplay();
-        }
-        else if(blinkState == HIGH){
-          blinkState = LOW;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_YELLOW);  
+          delay(200);
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_YELLOW);  
           matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_YELLOW);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(mainBranchY[mainBranchLength-1], mainBranchX[mainBranchLength-1], LED_YELLOW);  
+          matrix.writeDisplay();
+          delay(200);
+          
         }
       }
-      mainBranchLength++;
-    }
     if (state == sideBranchGrow){
       if (sideBranchLength > 0){
         sideBranchLength--;
