@@ -1,32 +1,21 @@
-/*
+/**
 Bonsai Tree
 Created on 3/20/2020
 By: David M. Rudow
-A small monsai tree created on a 8x8 bi-color LED Matrix. 
+A small bonsai tree created on an Adafruit Bicolor LED Square Pixel Matrix with I2C Backpack. Control system is an Arduino UNO.
+The tree will start with a "seed" in a random position on the bottom row. Then the main branch wil grow from that. It will always
+grow vertically and either left right or center. Once it reaches the row below the top it will stop growing. Then a branch will 
+grow at a randomly selected place on the tree. The branch will always grow away from the tree. Once the branch reaches it's max
+length the leaves will start growing. The branch is yellow and the leaves start green. The leaves will grow on the branch after 
+the first 3 pixles and anywhere on the side branch. After all the leaves have grown they turn red in the same order they were created.
+Then they fall off one by one and land on the bottom of the screen. After the last one falls the screen clears and the whole process starts over.
 
-3/25/2020
--Added cases to make a state machine
--Added side branch case
--need to add leafs
+The tree can be pruned by holding the button down for 3 seconds. This will only undo the previous growths. It will only prune the current state.
 
-3/26/2020
--Added leafs
--Added changing leaf color
+Input:push button conected to pin 2 and ground. Uses internal pull-up.
 
-3/31/2020
--added prune function
+Output: I2C to the backpack to update the display.
 
-4/15/2020
--added leaf falling
--need to test for overlap so the whole screen doesn't turn red
--check fro branch over lap and that it's not overlapping a leaf (for loop from after the current leaf)
-
-4/16/2020
--fixed leaf overlap
-
-4/17/2020
--need to fix deletion of main branch when pruning first side branch
--figure out something before seed to show it's on
 
 */
 
@@ -34,6 +23,9 @@ A small monsai tree created on a 8x8 bi-color LED Matrix.
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include "Adafruit_LEDBackpack.h"
+
+//needed for the matrix functions
+Adafruit_BicolorMatrix matrix = Adafruit_BicolorMatrix();
 
 //declare states for state machine
 enum treeState {seedState, mainBranchGrow, sideBranchGrow, leafGrow, leafChange, leafFall};         //
@@ -46,24 +38,23 @@ int buttonLast = 0;                       // buffered value of the button's prev
 bool buttonFlag = false;
 
 //timer variables
-const unsigned long growInterval = 10000UL;     //time between each growth
-const unsigned long leafInterval = 20000UL;   //time to wait before continuing changing leaves
-unsigned long growTimer = 0UL;                //current growth interval
-unsigned long leafTimer = 0UL;             //current leaf growing interval
+const unsigned long totalTime = 1000UL*60*60*24*5;                    //total time for the tree to go from seed to end tree (1000UL*60*60*24*5 )
+const unsigned long growInterval = totalTime/50;                //time between each growth (7 main branch + 3 side + 10 leafs + 10 change + 10 fall = 40
+const unsigned long leafInterval = totalTime-(totalTime/5);     //time to wait before continuing changing leaves
+
+unsigned long growTimer = 0UL;                                  //current growth interval
+unsigned long leafTimer = 0UL;                                  //current leaf growing interval
 
 const unsigned long debounce = 20UL;
-const unsigned long holdTime = 5000UL;
+const unsigned long holdTime = 3000UL;                          //time button needs to be held for prune
 
-unsigned long buttonTime = 0UL;           // time the button was pressed down
+unsigned long buttonTime = 0UL;                                 // time the button was pressed down
 
 unsigned long previousBlink = 0;
 unsigned long blinkInterval = 200;
 
 //used for blink function
 int blinkState = LOW;
-
-//needed for the matrix functions
-Adafruit_BicolorMatrix matrix = Adafruit_BicolorMatrix();
 
 //declare main branch array, max length
 int mainBranchX [7];
@@ -123,7 +114,7 @@ void setup() {
 
   matrix.begin(0x70);                       // pass in the address
   matrix.setRotation(2);
-  matrix.setBrightness(15);
+  matrix.setBrightness(7);                  //0-16
   matrix.fillRect(0,0, 7,7, LED_OFF);
   matrix.writeDisplay();  // write the changes we just made to the display
 
@@ -164,8 +155,6 @@ void loop() {
 if ((millis() - growTimer) >= growInterval){
   switch(state){
     case seedState:
-      plantSeed();
-      state = mainBranchGrow;
       break;
 
     case mainBranchGrow:
@@ -185,6 +174,9 @@ if ((millis() - growTimer) >= growInterval){
         state = sideBranchGrow;
       }
       else{ 
+        state = leafGrow;
+      }
+      if((millis() - growTimer) >= leafInterval){
         state = leafGrow;
       }
       break;
@@ -240,7 +232,12 @@ if ((millis() - growTimer) >= growInterval){
 
 
 
-
+/**
+ * Plant Seed
+ * Selects a random position on the bottom row and makes this the first piece of the main branch
+ * 
+ * The routine is reached by holding the button down for a few seconds to "plant" the seed
+ */
 
 
 void plantSeed()
@@ -260,7 +257,10 @@ void plantSeed()
   return;
   }
 
-
+/**
+ * Main Branch Add
+ * 
+ */
   
 void mainBranchAdd ()
   {
@@ -296,7 +296,7 @@ void sideBranchAdd ()
       sideBranchLength++;
       }
     
-        if (branchPointX < 4){                              //if the starting point is on the left side of the screen, grow right
+        if (sideBranchX[0] < 4){                              //if the starting point is on the left side of the screen, grow right
           sideBranchX[sideBranchLength] = sideBranchX[0]+sideBranchLength;
           Serial.println("The branch is growing right");
         }
@@ -326,12 +326,12 @@ void leafAdd(){
   randomGrowth = Entropy.random(2);
   leafAdded = false;
   if (randomGrowth == 1){                                 //decide between growing a leaf on the branch or trunk
-    randomGrowth = Entropy.random(3,7);                   //only to 7 beacuse the branch doesnt go to the edge fo the screen
+    randomGrowth = Entropy.random(1,mainBranchLength);                   //only to 7 beacuse the branch doesnt go to the edge fo the screen
     leafHolderX = mainBranchX[randomGrowth] - 1 + Entropy.random(3);
     leafHolderY = mainBranchY[randomGrowth] - 1 + Entropy.random(3);
   }
   else{
-    randomGrowth = Entropy.random(1,4);
+    randomGrowth = Entropy.random(1,sideBranchLength);
     leafHolderX = sideBranchX[randomGrowth] - 1 + Entropy.random(3);
     leafHolderY = sideBranchY[randomGrowth] - 1 + Entropy.random(3);
   }
@@ -442,7 +442,13 @@ void leafFallAnimate(){
     return;
   }
 }
+/**
+ resetTree
+ input: none
+ output: none
 
+ clears the matrix, resets varaibles, and sets state to seed 
+ */
 
 void resetTree(){
   mainBranchLength = 1;
@@ -517,6 +523,10 @@ bool overlapDetectedLeafFall(int positionLeafFallX, int positionLeafFallY, int l
 }
 
 void prune(){
+  if (state == seedState){
+    plantSeed();
+    state=mainBranchGrow;
+  }
   if (state == mainBranchGrow){
     if (mainBranchLength > 1){
       mainBranchLength--;
@@ -584,38 +594,50 @@ if (buttonFlag == true){
         }
       }
     if (state == sideBranchGrow){
-      if (sideBranchLength > 0){
-        sideBranchLength--;
-        if(blinkState == LOW){
-          blinkState = HIGH;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_OFF);  
+      if (sideBranchLength > 0 && buttonFlag == true){
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_OFF);  
           matrix.writeDisplay();
-        }
-        else if(blinkState == HIGH){
-          blinkState = LOW;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_YELLOW);  
+          delay(200);
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_YELLOW);  
           matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_YELLOW);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(sideBranchY[sideBranchLength-1], sideBranchX[sideBranchLength-1], LED_YELLOW);  
+          matrix.writeDisplay();
+          delay(200);
       }
-    }
-    sideBranchLength++;
     }
     if (state == leafGrow){
-      if (leafTotal > 0){
-        leafTotal--;
-        if(blinkState == LOW){
-          blinkState = HIGH;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_OFF);  
+      if (leafTotal > 0 && buttonFlag == true){
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_OFF);  
           matrix.writeDisplay();
-        }
-        else if(blinkState == HIGH){
-          blinkState = LOW;
-          matrix.drawPixel(mainBranchY[mainBranchLength], mainBranchX[mainBranchLength], LED_GREEN);  
+          delay(200);
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_GREEN);  
           matrix.writeDisplay();
-      }
-    }
-    leafTotal++;
+          delay(200);
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_GREEN);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_OFF);  
+          matrix.writeDisplay();
+          delay(200);
+          matrix.drawPixel(leafY[leafTotal-1], leafX[leafTotal-1], LED_GREEN);  
+          matrix.writeDisplay();
+          delay(200);
     }
 }
   return;
+}
 }  
    
