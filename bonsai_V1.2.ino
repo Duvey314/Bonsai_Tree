@@ -39,8 +39,8 @@ bool buttonFlag = false;
 
 //timer variables
 const unsigned long totalTime = 1000UL*60*60*24*5;                    //total time for the tree to go from seed to end tree (1000UL*60*60*24*5 )
-const unsigned long growInterval = totalTime/50;                //time between each growth (7 main branch + 3 side + 10 leafs + 10 change + 10 fall = 40
-const unsigned long leafInterval = totalTime-(totalTime/5);     //time to wait before continuing changing leaves
+const unsigned long growInterval = totalTime/60;                //time between each growth (7 main branch + 3 side branch + 10 leafs + 10 change + 10 fall = 40
+const unsigned long leafInterval = totalTime-(totalTime/4);     //time to wait before continuing changing leaves
 
 unsigned long growTimer = 0UL;                                  //current growth interval
 unsigned long leafTimer = 0UL;                                  //current leaf growing interval
@@ -176,9 +176,6 @@ if ((millis() - growTimer) >= growInterval){
       else{ 
         state = leafGrow;
       }
-      if((millis() - growTimer) >= leafInterval){
-        state = leafGrow;
-      }
       break;
 
       case leafGrow:
@@ -189,6 +186,9 @@ if ((millis() - growTimer) >= growInterval){
         else{
           state = leafChange;
         }
+        if((millis() - growTimer) >= leafInterval){
+        state = leafChange;
+      }
         break;
 
       case leafChange:
