@@ -39,10 +39,11 @@ bool buttonFlag = false;
 
 //timer variables
 const unsigned long totalTime = 1000UL*60*60*24*5;                    //total time for the tree to go from seed to end tree (1000UL*60*60*24*5 )
-const unsigned long growInterval = totalTime/60;                //time between each growth (7 main branch + 3 side branch + 10 leafs + 10 change + 10 fall = 40
+const unsigned long growthInterval = totalTime/60;                //time between each growth (7 main branch + 3 side branch + 10 leafs + 10 change + 10 fall = 40
 const unsigned long leafInterval = totalTime-(totalTime/4);     //time to wait before continuing changing leaves
 
-unsigned long growTimer = 0UL;                                  //current growth interval
+unsigned long growthTimer = 0UL;
+unsigned long growthIntervalTimer = 0UL;                                  //current growth interval
 unsigned long leafTimer = 0UL;                                  //current leaf growing interval
 
 const unsigned long debounce = 20UL;
@@ -110,7 +111,7 @@ void setup() {
 
   pinMode(pruneButton, INPUT_PULLUP);
 
-  growTimer = millis(); 
+  growthIntervalTimer = millis(); 
 
   matrix.begin(0x70);                       // pass in the address
   matrix.setRotation(2);
@@ -152,7 +153,7 @@ void loop() {
   
   buttonLast = buttonVal;
 
-if ((millis() - growTimer) >= growInterval){
+if ((millis() - growthIntervalTimer) >= growthInterval){
   switch(state){
     case seedState:
       break;
@@ -169,8 +170,8 @@ if ((millis() - growTimer) >= growInterval){
       break;
 
     case sideBranchGrow:      
+      sideBranchAdd();
       if (sideBranchLength < sideBranchMaxLength){
-        sideBranchAdd();
         state = sideBranchGrow;
       }
       else{ 
@@ -179,21 +180,21 @@ if ((millis() - growTimer) >= growInterval){
       break;
 
       case leafGrow:
+        leafAdd();
         if (leafTotal < leafMax){
-          leafAdd();
           state = leafGrow;
         }
         else{
           state = leafChange;
         }
-        if((millis() - growTimer) >= leafInterval){
+        if((millis() - growthTimer) >= leafInterval){
         state = leafChange;
       }
         break;
 
       case leafChange:
+        leafChangeColor();      
         if (leafChangeTotal < leafTotal){
-          leafChangeColor();
           state = leafChange;
         }
         else{
@@ -202,17 +203,16 @@ if ((millis() - growTimer) >= growInterval){
         break;
 
       case leafFall:
+        leafFallAnimate();
         if (leafFallTotal < leafTotal){
-          leafFallAnimate();
           state = leafFall;
         }
         else{
-          delay(1000*10);
           resetTree();
           state = seedState; 
         }
   }
-  growTimer = millis();
+  growthIntervalTimer = millis();
   }
 }
 
@@ -246,6 +246,8 @@ void plantSeed()
   
   mainBranchX[0] = Entropy.random(0, 8);
   mainBranchY[0] = 0;
+
+  growthTimer = millis();
   
   matrix.drawPixel(mainBranchY[0], mainBranchX[0], LED_YELLOW);
   matrix.writeDisplay();
@@ -264,8 +266,11 @@ void plantSeed()
   
 void mainBranchAdd ()
   {
-    mainBranchHolderX = (mainBranchX[mainBranchLength-1] - 1 + Entropy.random(0,3));
+bool branchAdded = false;
     
+    mainBranchHolderX = (mainBranchX[mainBranchLength-1] - 1 + Entropy.random(0,3));
+
+    while(branchAdded == false){
     if (edgeDetected(mainBranchHolderX, 0) == false){
       
       mainBranchY[mainBranchLength] = mainBranchLength;
@@ -280,7 +285,10 @@ void mainBranchAdd ()
       Serial.print("Main Branch Length: ");
       Serial.println(mainBranchLength);
 
+      branchAdded = true;
+      
       mainBranchLength++;
+    }
     }
   return;
   }  
@@ -323,8 +331,9 @@ void sideBranchAdd ()
     }
     
 void leafAdd(){
+bool leafAdded = false;
+while(leafAdded == false){
   randomGrowth = Entropy.random(2);
-  leafAdded = false;
   if (randomGrowth == 1){                                 //decide between growing a leaf on the branch or trunk
     randomGrowth = Entropy.random(1,mainBranchLength);                   //only to 7 beacuse the branch doesnt go to the edge fo the screen
     leafHolderX = mainBranchX[randomGrowth] - 1 + Entropy.random(3);
@@ -353,12 +362,11 @@ void leafAdd(){
     Serial.println(leafTotal);
 
     leafAdded = true;
-    
+
     leafTotal++;
   }
-  if (leafAdded == true){
+}
     return;
-  }
 }
 
 
@@ -521,6 +529,14 @@ bool overlapDetectedLeafFall(int positionLeafFallX, int positionLeafFallY, int l
   Serial.println("No Overlap Detected on Leaf");
   return false;
 }
+
+/**
+ * Prune
+ * 
+ * Function is entered after the button has been held down for 5 seconds. It will only prune the state it is in not return to the previous state
+ * 
+ * In the seed state it will plant the seed
+ */
 
 void prune(){
   if (state == seedState){
