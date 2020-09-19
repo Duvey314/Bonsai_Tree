@@ -1,6 +1,7 @@
 # Bonsai_Tree
 
-![Bonsai Tree](https://548038.smushcdn.com/934934/wp-content/uploads/2018/06/How-To-Make-A-Bonsai-Tree-1.jpg?lossy=1&strip=0&webp=1)
+[![Bonsai Tree](https://img.youtube.com/vi/Nyb88LEKUjw/0.jpg)](https://www.youtube.com/watch?v=Nyb88LEKUjw)
+
 
 ## Table of contents
 * [Overview](#overview)
