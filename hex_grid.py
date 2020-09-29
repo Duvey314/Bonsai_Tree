@@ -1,5 +1,3 @@
-import math
-
 class Hexagon:
 
     def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#34eb52', rot='pointy'):
@@ -88,14 +86,14 @@ class HexGrid:
         if self.rot == 'pointy':
             myCanvas.delete('all')
             self.rot = 'flat'
-            self.gen_grid()
+            self.grid = self.gen_grid()
             self.draw_grid()
             print(self.rot)
             
         elif self.rot == 'flat':
             myCanvas.delete('all')
             self.rot = 'pointy'
-            self.gen_grid()
+            self.grid = self.gen_grid()
             self.draw_grid()
             self.draw_coord()
             print(self.rot)
@@ -103,7 +101,7 @@ class HexGrid:
 
     def draw_coord(self):
         for obj in self.grid:
-            myCanvas.create_text(obj.centx, obj.centy, font="Times 10",text = "{},{},{}".format(obj.x, obj.y, obj.z),)
+            myCanvas.create_text(obj.centx, obj.centy, font="Times 6",text = "{},{},{}".format(obj.x, obj.y, obj.z),)
 
     def rotate_grid(self,times=1):
         for i in range(times):
@@ -116,59 +114,75 @@ class HexGrid:
                 obj.x = y
                 obj.y = z
                 obj.z = x
-
         self.draw_grid()
         self.draw_coord()
 
-    def set_hex_col(self, (x, y, z)=(0, 0, 0), col="#000000"):
-        for obj in self.grid:
-            if obj.x == x and obj.y == y and obj.z == z:
-                obj.set_color()
-                obj.draw()
-                return
+    # def set_hex_col(self,(x, y, z)=(0, 0, 0), col="#000000"):
+    #     for obj in self.grid:
+    #         if obj.x == x and obj.y == y and obj.z == z:
+    #             obj.set_color()
+    #             obj.draw()
+    #             return
 
-    def cube_round(self, (x, y, z)=(0, 0, 0)):
-        rx = round(x)
-        ry = round(y)
-        rz = round(z)
+    # def cube_round(self, (x, y, z)=(0, 0, 0)):
+    #     rx = round(x)
+    #     ry = round(y)
+    #     rz = round(z)
 
-        x_diff = abs(rx - x)
-        y_diff = abs(ry - y)
-        z_diff = abs(rz - z)
+    #     x_diff = abs(rx - x)
+    #     y_diff = abs(ry - y)
+    #     z_diff = abs(rz - z)
 
-        if x_diff > y_diff and x_diff > z_diff:
-            rx = -ry - rz
-        elif y_diff > z_diff:
-            ry = -rx - rz
-        else:
-            rz = -rx - ry
+    #     if x_diff > y_diff and x_diff > z_diff:
+    #         rx = -ry - rz
+    #     elif y_diff > z_diff:
+    #         ry = -rx - rz
+    #     else:
+    #         rz = -rx - ry
 
-        return (rx, ry, rz)
+    #     return (rx, ry, rz)
 
-    def get_coord(self, coord_x, coord_y):
-        if self.rot == 'flat':
-            x = ((2. / 3) * (coord_x - (width / 2))) / self.rad
-            y = ((-1. / 3) * (coord_x - (width / 2)) + sqrt(3) / 3 * (coord_y - (height / 2))) / self.rad
-            z = -z-y
+    # def get_coord(self, coord_x, coord_y):
+    #     if self.rot == 'flat':
+    #         x = ((2. / 3) * (coord_x - (width / 2))) / self.rad
+    #         y = ((-1. / 3) * (coord_x - (width / 2)) + sqrt(3) / 3 * (coord_y - (height / 2))) / self.rad
+    #         z = -z-y
 
-        elif self.rot == 'pointy':
-            z = (sqrt(3) / 3 * (coord_x - width / 2) - 1. / 3 * (coord_y - height / 2)) / self.rad
-            y = (2. / 3 * (coord_y - height / 2)) / self.rad
-            x = (-z)-y
+    #     elif self.rot == 'pointy':
+    #         z = (sqrt(3) / 3 * (coord_x - width / 2) - 1. / 3 * (coord_y - height / 2)) / self.rad
+    #         y = (2. / 3 * (coord_y - height / 2)) / self.rad
+    #         x = (-z)-y
 
-        return self.cube_round((x,y,z))
+    #     return self.cube_round((x,y,z))
 
-    def axial_to_cube(self, q, r):
-        z = q
-        y = r
-        x = -z - y
-        return (x, y, z)
+    # def axial_to_cube(self, q, r):
+    #     z = q
+    #     y = r
+    #     x = -z - y
+    #     return (x, y, z)
 
 
-import Tkinter as tk
+import tkinter as tk
+import math
 
-canvas_width  = 300
-canvas_height = 300
+# def choose_color(): 
+  
+#     # variable to store hexadecimal code of color 
+#     color_code = colorchooser.askcolor(title ="Choose color")  
+#     print(color_code) 
+
+def callback(event):
+    x = event.x
+    y = event.y
+    item = event.widget.find_closest(x, y)[0]
+    event.widget.itemconfigure(item,fill=color_pick)
+    print(item)
+
+canvas_width  = 400
+canvas_height = 400
+
+global color_pick
+color_pick = "#000000"
 
 # init tk
 root = tk.Tk()
@@ -186,10 +200,8 @@ myCanvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width)
 # hexagon3.draw()
 # hexagon2.set_color('blue')
 
-grid = HexGrid(4,'pointy',20)
-grid.gen_grid()
+grid = HexGrid(1,'pointy',15)
 grid.draw_grid()
-grid.draw_coord()
 
 myCanvas.pack()
 
@@ -199,6 +211,7 @@ frame.pack(fill='x')
 button1 = tk.Button(frame, text="orientation", command=grid.change_orientation)
 button1.pack(side='bottom', padx=10)
 
+myCanvas.bind("<Button-1>", callback)
 
 # add to window and show
 root.mainloop()
