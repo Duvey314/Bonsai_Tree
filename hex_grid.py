@@ -1,6 +1,6 @@
 class Hexagon:
 
-    def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#34eb52', rot='pointy'):
+    def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#ffffff', rot='pointy'):
         self.centx = centx
         self.centy = centy
         self.size  = size
@@ -162,21 +162,24 @@ class HexGrid:
     #     return (x, y, z)
 
 
-import tkinter as tk
+# importing tkinter module 
+from tkinter import *
+  
+# importing the choosecolor package 
+from tkinter.colorchooser import *
 import math
 
-# def choose_color(): 
-  
-#     # variable to store hexadecimal code of color 
-#     color_code = colorchooser.askcolor(title ="Choose color")  
-#     print(color_code) 
-
+def choose_color(): 
+    global color_pick
+    # variable to store hexadecimal code of color 
+    color_pick = askcolor()[1] 
+    print(color_pick)
+    
 def callback(event):
     x = event.x
     y = event.y
     item = event.widget.find_closest(x, y)[0]
     event.widget.itemconfigure(item,fill=color_pick)
-    print(item)
 
 canvas_width  = 400
 canvas_height = 400
@@ -185,31 +188,26 @@ global color_pick
 color_pick = "#000000"
 
 # init tk
-root = tk.Tk()
+root = Tk()
 
 # create canvas
-myCanvas = tk.Canvas(root, bg="white", height=canvas_height, width=canvas_width)
+myCanvas = Canvas(root, bg="white", height=canvas_height, width=canvas_width)
 
-# draw
+# draw grid
 
-# hexagon = Hexagon(0,0,0,20)
-# hexagon.draw()
-# hexagon2 = Hexagon(0,-1,1,20,rot='flat')
-# hexagon2.draw()
-# hexagon3 =Hexagon(0,-2,2,20, col = 'black')
-# hexagon3.draw()
-# hexagon2.set_color('blue')
-
-grid = HexGrid(1,'pointy',15)
+grid = HexGrid(5,'pointy',15)
 grid.draw_grid()
 
 myCanvas.pack()
 
 # create frame to put control buttons onto
-frame = tk.Frame(root, bg='grey', width=canvas_width, height=canvas_height/5)
+frame = Frame(root, bg='grey', width=canvas_width, height=canvas_height/5)
 frame.pack(fill='x')
-button1 = tk.Button(frame, text="orientation", command=grid.change_orientation)
-button1.pack(side='bottom', padx=10)
+rot_button = Button(frame, text="orientation", command=grid.change_orientation)
+rot_button.pack(side='bottom', padx=10)
+button = Button(frame, text = "Select color", 
+                   command = choose_color) 
+button.pack() 
 
 myCanvas.bind("<Button-1>", callback)
 
