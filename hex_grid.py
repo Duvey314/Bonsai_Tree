@@ -103,6 +103,16 @@ class HexGrid:
         for obj in self.grid:
             myCanvas.create_text(obj.centx, obj.centy, font="Times 6",text = "{},{},{}".format(obj.x, obj.y, obj.z),)
 
+    def show_neighbors(self,x,y,z):
+        neighbors = []
+        cube_directions = [
+        (+1, -1, 0), (+1, 0, -1), (0, +1, -1), 
+        (-1, +1, 0), (-1, 0, +1), (0, -1, +1)]
+        for direction in cube_directions:
+            neighbor = [x+direction[0],y+direction[1],z+direction[2]]
+            neighbors.append(neighbor)
+        print(neighbors)
+
     def rotate_grid(self,times=1):
         for i in range(times):
             for obj in self.grid:
@@ -210,6 +220,10 @@ button = Button(frame, text = "Select color",
 button.pack() 
 
 myCanvas.bind("<Button-1>", callback)
+
+neighbors = grid.show_neighbors(0,0,0)
+for neighbor in neighbors:
+    
 
 # add to window and show
 root.mainloop()
