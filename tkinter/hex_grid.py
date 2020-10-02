@@ -1,6 +1,6 @@
 class Hexagon:
 
-    def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#ffffff', rot='pointy'):
+    def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#ffffff', rot='pointy',id=0):
         self.centx = centx
         self.centy = centy
         self.size  = size
@@ -37,8 +37,8 @@ class Hexagon:
         else:
             return 'error'
         
-        myCanvas.create_polygon(points, outline='#000000', 
-            fill=self.col, width=1)
+        self.id=(myCanvas.create_polygon(points, outline='#000000', 
+            fill=self.col, width=1))
 
     def coord(self):
         return (self.x, self.y, self.z)
@@ -54,9 +54,6 @@ class Hexagon:
 
     def pix_coord(self):
         return (self.centx, self.centy)
-
-    def rot(self):
-        return (self.rot)
 
 
 class HexGrid:
@@ -108,10 +105,13 @@ class HexGrid:
         cube_directions = [
         (+1, -1, 0), (+1, 0, -1), (0, +1, -1), 
         (-1, +1, 0), (-1, 0, +1), (0, -1, +1)]
+        # for direction in cube_directions:
+        #     neighbor = [x+direction[0],y+direction[1],z+direction[2]]
+        #     neighbors.append(neighbor)
         for direction in cube_directions:
-            neighbor = [x+direction[0],y+direction[1],z+direction[2]]
+            neighbor = grid.ret_hex_cube(x+direction[0],y+direction[1],z+direction[2])
             neighbors.append(neighbor)
-        print(neighbors)
+        return(neighbors)
 
     def rotate_grid(self,times=1):
         for i in range(times):
@@ -127,12 +127,22 @@ class HexGrid:
         self.draw_grid()
         self.draw_coord()
 
-    # def set_hex_col(self,(x, y, z)=(0, 0, 0), col="#000000"):
-    #     for obj in self.grid:
-    #         if obj.x == x and obj.y == y and obj.z == z:
-    #             obj.set_color()
-    #             obj.draw()
-    #             return
+    def set_hex_col(self, x, y, z, col="#000000"):
+        for obj in self.grid:
+            if obj.x == x and obj.y == y and obj.z == z:
+                obj.set_color()
+                obj.draw()
+                return
+    
+    def ret_hex_cube(self, x, y, z):
+        for obj in self.grid:
+            if obj.x == x and obj.y == y and obj.z == z:
+                return obj
+    
+    def ret_hex_id(self, hex_id):
+        for obj in self.grid:
+            if obj.id == hex_id:
+                return obj
 
     # def cube_round(self, (x, y, z)=(0, 0, 0)):
     #     rx = round(x)
@@ -189,7 +199,13 @@ def callback(event):
     x = event.x
     y = event.y
     item = event.widget.find_closest(x, y)[0]
-    event.widget.itemconfigure(item,fill=color_pick)
+    hexagon = grid.ret_hex_id(item)
+    neighbor=grid.show_neighbors(hexagon.x,hexagon.y,hexagon.z) 
+    for hexagon in neighbor:
+        hexagon.set_color(color_pick)     
+    #event.widget.itemconfigure(item,fill=color_pick)
+
+
 
 canvas_width  = 400
 canvas_height = 400
@@ -221,8 +237,7 @@ button.pack()
 
 myCanvas.bind("<Button-1>", callback)
 
-neighbors = grid.show_neighbors(0,0,0)
-for neighbor in neighbors:
+
     
 
 # add to window and show
