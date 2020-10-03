@@ -92,7 +92,6 @@ class HexGrid:
             self.rot = 'pointy'
             self.grid = self.gen_grid()
             self.draw_grid()
-            self.draw_coord()
             print(self.rot)
             
 
@@ -200,10 +199,12 @@ def callback(event):
     y = event.y
     item = event.widget.find_closest(x, y)[0]
     hexagon = grid.ret_hex_id(item)
-    neighbor=grid.show_neighbors(hexagon.x,hexagon.y,hexagon.z) 
-    for hexagon in neighbor:
-        hexagon.set_color(color_pick)     
-    #event.widget.itemconfigure(item,fill=color_pick)
+    if variable.get() == 'neighbor':
+        neighbor=grid.show_neighbors(hexagon.x,hexagon.y,hexagon.z) 
+        for hexagon in neighbor:
+            hexagon.set_color(color_pick)
+    elif variable.get() == 'point':     
+        event.widget.itemconfigure(item,fill=color_pick)
 
 
 
@@ -221,7 +222,7 @@ myCanvas = Canvas(root, bg="white", height=canvas_height, width=canvas_width)
 
 # draw grid
 
-grid = HexGrid(5,'pointy',15)
+grid = HexGrid(6,'pointy',15)
 grid.draw_grid()
 
 myCanvas.pack()
@@ -234,6 +235,13 @@ rot_button.pack(side='bottom', padx=10)
 button = Button(frame, text = "Select color", 
                    command = choose_color) 
 button.pack() 
+
+global variable 
+variable = StringVar(root)
+variable.set("point") # default value
+
+w = OptionMenu(root, variable, "point", "neighbor")
+w.pack()
 
 myCanvas.bind("<Button-1>", callback)
 
