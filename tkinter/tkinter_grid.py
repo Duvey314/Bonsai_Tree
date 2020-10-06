@@ -1,4 +1,5 @@
-import hex_class
+from hex_class import Hexagon
+from hex_class import HexGrid
 
 # importing tkinter module 
 from tkinter import *

@@ -111,6 +111,9 @@ class HexGrid:
             neighbor = grid.ret_hex_cube(x+direction[0],y+direction[1],z+direction[2])
             neighbors.append(neighbor)
         return(neighbors)
+    
+    def get_dist(self,a,b):
+        return (abs(a.x-b.x) + abs(a.y-b.y) + abs(a.z-b.z))/2
 
     def rotate_grid(self,times=1):
         for i in range(times):
@@ -181,6 +184,7 @@ class HexGrid:
     #     return (x, y, z)
 
 
+
 # importing tkinter module 
 from tkinter import *
   
@@ -188,13 +192,19 @@ from tkinter import *
 from tkinter.colorchooser import *
 import math
 
+canvas_width  = 400
+canvas_height = 400
+
+global color_pick
+color_pick = "#000000"
+
 def choose_color(): 
     global color_pick
     # variable to store hexadecimal code of color 
     color_pick = askcolor()[1] 
     print(color_pick)
     
-def callback(event):
+def left_click(event):
     x = event.x
     y = event.y
     item = event.widget.find_closest(x, y)[0]
@@ -204,15 +214,27 @@ def callback(event):
         for hexagon in neighbor:
             hexagon.set_color(color_pick)
     elif variable.get() == 'point':     
-        event.widget.itemconfigure(item,fill=color_pick)
+        hexagon.set_color(color_pick)
+    elif variable.get() == 'distance':
+        hex_dist_a = hexagon
+        hexagon.set_color(color_pick)
+        print(grid.get_dist(hex_dist_a,hex_dist_b))
 
-
-
-canvas_width  = 400
-canvas_height = 400
-
-global color_pick
-color_pick = "#000000"
+def right_click(event):
+    x = event.x
+    y = event.y
+    item = event.widget.find_closest(x, y)[0]
+    hexagon = grid.ret_hex_id(item)
+    if variable.get() == 'neighbor':
+        neighbor=grid.show_neighbors(hexagon.x,hexagon.y,hexagon.z) 
+        for hexagon in neighbor:
+            hexagon.set_color(color_pick)
+    elif variable.get() == 'point':     
+        hexagon.set_color(color_pick)
+    elif variable.get() == 'distance':
+        hex_dist_b = hexagon
+        hexagon.set_color(color_pick)
+        print(grid.get_dist(hex_dist_a,hex_dist_b))
 
 # init tk
 root = Tk()
@@ -224,6 +246,12 @@ myCanvas = Canvas(root, bg="white", height=canvas_height, width=canvas_width)
 
 grid = HexGrid(6,'pointy',15)
 grid.draw_grid()
+
+# create variables for hex distance
+global hex_dist_a
+global hex_dist_b
+hex_dist_a = Hexagon()
+hex_dist_b = Hexagon()
 
 myCanvas.pack()
 
@@ -240,11 +268,11 @@ global variable
 variable = StringVar(root)
 variable.set("point") # default value
 
-w = OptionMenu(root, variable, "point", "neighbor")
+w = OptionMenu(root, variable, "point", "neighbor","distance")
 w.pack()
 
-myCanvas.bind("<Button-1>", callback)
-
+myCanvas.bind("<Button-1>", left_click)
+myCanvas.bind("<Button-3>", right_click)
 
     
 
