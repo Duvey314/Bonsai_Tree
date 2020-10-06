@@ -20,3 +20,4 @@ The second iteration is based on the same idea but implemeted in an rgb hex grid
 * [Grid Design](http://louisc.co.uk/?p=2554)
 * [Hexagon Grid](https://www.youtube.com/watch?v=po9i8U6nh0U)
 * [RGB Grid](https://create.arduino.cc/projecthub/Mukesh_Sankhla/rgb-hexmatrix-iot-clock-54fc5d)
+* [RGB LEDs](https://hackaday.com/2019/03/26/can-you-live-without-the-ws2812/)
