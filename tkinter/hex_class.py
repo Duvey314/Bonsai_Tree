@@ -1,6 +1,9 @@
 class Hexagon:
+    '''
+    This is the hexagon class. Stores the values of each hexagon
+    '''
 
-    def __init__(self, x=0, y=0, z=0, size=20, centx=0, centy=0, col='#ffffff', rot='pointy',id=0):
+    def __init__(self, x: int = 0, y=0, z=0, size=20, centx=0, centy=0, col='#ffffff', rot='pointy',id=0):
         self.centx = centx
         self.centy = centy
         self.size  = size
@@ -23,6 +26,9 @@ class Hexagon:
                 self.centy = (self.size * ((3.0 / 2) * self.z)) + (canvas_width / 2)
 
     def draw(self):
+        '''
+        This function draws the hexagon on a tkinter canvas.
+        '''
         points = []
         if (self.rot == 'flat'):
             for i in range(6):
@@ -54,6 +60,9 @@ class Hexagon:
 
     def pix_coord(self):
         return (self.centx, self.centy)
+    
+    def print_coord(self):
+        print(f"{self.x},{self.y},{self.z}")
 
 
 class HexGrid:
@@ -135,13 +144,13 @@ class HexGrid:
                 obj.set_color()
                 obj.draw()
                 return
-    
+
     def ret_hex_cube(self, x, y, z):
         for obj in self.grid:
             if obj.x == x and obj.y == y and obj.z == z:
                 return obj
     
-    def ret_hex_id(self, hex_id):
+    def ret_hex_id(self, hex_id) -> Hexagon:
         for obj in self.grid:
             if obj.id == hex_id:
                 return obj
@@ -218,6 +227,7 @@ def left_click(event):
     elif variable.get() == 'distance':
         hex_dist_a = hexagon
         hexagon.set_color(color_pick)
+        hexagon.print_coord()
         print(grid.get_dist(hex_dist_a,hex_dist_b))
 
 def right_click(event):
@@ -234,6 +244,7 @@ def right_click(event):
     elif variable.get() == 'distance':
         hex_dist_b = hexagon
         hexagon.set_color(color_pick)
+        hexagon.print_coord()
         print(grid.get_dist(hex_dist_a,hex_dist_b))
 
 # init tk
